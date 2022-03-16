@@ -1,0 +1,50 @@
+infile=open("synthesis",'r')
+title=infile.readline()
+lines=infile.readlines()
+keywords_count={}
+keywords_interaction={}
+
+cluster_circuit_keywords=['genetic circuit','engineering']
+cluster_carnit_keywords=['nitrogen','carbon','photos','rubisco','plant']
+cluster_others_keywords=['synthetic']
+cluster_circuit_index=[]
+cluster_others_index=[]
+cluster_carnit_index=[]
+
+
+for i in range(len(lines)):
+    line=lines[i]
+    for j in cluster_circuit_keywords:
+        if j in line:
+            cluster_circuit_index.append(i)
+            break
+    for j in cluster_carnit_keywords:
+        if j in line:
+            cluster_carnit_index.append(i)
+            break
+    for j in cluster_others_keywords:
+        if j in line:
+            cluster_others_index.append(i)
+            break
+    line=line.split('\t')
+    temp_keywords_set=line[19].lower().split('; ')+line[20].lower().split('; ')
+    temp_keywords_set=list(set(temp_keywords_set))
+    for j in range(len(temp_keywords_set)):
+        keyword=temp_keywords_set[j]
+        if keyword in keywords_count.keys():
+            keywords_count[keyword]=keywords_count[keyword]+1
+        else:
+            keywords_count[keyword]=1
+        for k in range(j+1,len(temp_keywords_set)):
+            keywords_1=keyword+'?'+temp_keywords_set[k]
+            keywords_2=temp_keywords_set[k]+'?'+keyword
+            if (keywords_1 not in keywords_interaction.keys()) and (keywords_2 not in keywords_interaction.keys()):
+                keywords_interaction[keywords_1]=1
+            elif keywords_1 in keywords_interaction.keys():
+                keywords_interaction[keywords_1]=1+keywords_interaction[keywords_1]
+            else:
+                keywords_interaction[keywords_2]=1+keywords_interaction[keywords_2]
+
+outfile=open("edge.tsv",'w')
+for i in keywords_interaction.keys():
+  outfile.write('\t'.join(i.split('?'))+'\t'+str(keywords_interaction[i])+'\n')
